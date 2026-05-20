@@ -9,94 +9,170 @@ from telegram.ext import (
 
 from dotenv import load_dotenv
 import os
+import traceback
 
 from app.services.intent_service import classify_intent
-from app.tools.water_tool import log_water
 from app.tools.weight_tool import log_weight
+from app.tools.water_tool import log_water
+from app.tools.analytics_tool import get_7_day_average_weight
+from app.tools.trend_tool import get_weight_trend
+from app.services.onboarding_service import handle_onboarding
 
 load_dotenv()
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
+# START COMMAND
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     await update.message.reply_text(
         "Fitness Agent Activated 💪"
     )
 
 
+# MAIN MESSAGE HANDLER
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     user_message = update.message.text
 
-    # Telegram unique user id
+    # Unique Telegram user id
     user_id = str(update.effective_user.id)
+
+    # HANDLE ONBOARDING FLOW
+    onboarding_handled = await handle_onboarding(
+        update=update,
+        user_id=user_id,
+        user_message=user_message
+    )
+
+    # STOP FLOW IF ONBOARDING ACTIVE
+    if onboarding_handled:
+        return
+
+    print("\n===== NEW MESSAGE =====")
+    print("User:", user_message)
 
     try:
 
-        # STEP 1 → Understand user intent
+        # STEP 1 → Classify user intent
         intent_data = classify_intent(user_message)
 
+        print("\n===== INTENT DATA =====")
         print(intent_data)
 
-        intent = intent_data.get("intent")
+        # STEP 2 → Extract actions
+        actions = intent_data.get("actions", [])
 
-        # STEP 2 → Route to correct tool
+        responses = []
 
-        if intent == "log_weight":
+        # STEP 3 → Execute tools
+        for action in actions:
 
-            weight = intent_data.get("weight")
+            intent = action.get("intent")
 
-            if weight is None:
+            # WEIGHT LOGGING
+            if intent == "log_weight":
 
-                response = "I could not detect your weight."
+                weight = action.get("weight")
 
-            else:
+                if weight is None:
 
-                response = log_weight(
-                    user_id=user_id,
-                    weight=weight
+                    responses.append(
+                        "Could not detect weight."
+                    )
+
+                else:
+
+                    response = log_weight(
+                        user_id=user_id,
+                        weight=weight
+                    )
+
+                    responses.append(response)
+
+            # WATER LOGGING
+            elif intent == "log_water":
+
+                liters = action.get("liters")
+
+                if liters is None:
+
+                    responses.append(
+                        "Could not detect water intake."
+                    )
+
+                else:
+
+                    response = log_water(
+                        user_id=user_id,
+                        liters=liters
+                    )
+
+                    responses.append(response)
+            elif intent == "average_weight":
+
+                response = get_7_day_average_weight(
+                    user_id=user_id
                 )
 
-        elif intent == "log_water":
+                responses.append(response)
+            elif intent == "weight_trend":
 
-            liters = intent_data.get("liters")
-
-            if liters is None:
-                response = "I could not detect your water intake."
-            else:
-                response = log_water(
-                    user_id=user_id,
-                    liters=liters
+                response = get_weight_trend(
+                    user_id=user_id
                 )
 
-        else:
+                responses.append(response)
+            # UNKNOWN INTENT
+            else:
 
-            response = (
-                "I can currently help with:\n"
-                "- Weight logging\n"
-                "- Water tracking\n"
-                "- Fitness tracking"
+                responses.append(
+                    f"Unknown intent: {intent}"
+                )
+
+        # STEP 4 → Fallback response
+        if not responses:
+
+            responses.append(
+                (
+                    "I can currently help with:\n"
+                    "- Weight logging\n"
+                    "- Water tracking\n"
+                    "- Average weight\n"
+                    "- Weight trends"
+                )
             )
 
-    except Exception as e:
+        # STEP 5 → Final response
+        final_response = "\n".join(responses)
 
-        import traceback
+    except Exception as e:
 
         print("\n===== ERROR =====")
         traceback.print_exc()
         print("=================\n")
 
-        response = f"Error: {str(e)}"
+        final_response = (
+            f"Something went wrong:\n{str(e)}"
+        )
 
-    # STEP 3 → Send reply back to Telegram
-    await update.message.reply_text(response)
+    # STEP 6 → Reply back to Telegram
+    await update.message.reply_text(final_response)
 
 
+# CREATE TELEGRAM APPLICATION
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
+# COMMAND ROUTES
 app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-print("Bot running...")
+# MESSAGE ROUTES
+app.add_handler(
+    MessageHandler(filters.TEXT, handle_message)
+)
 
+print("Bot running... 🚀")
+
+# START BOT
 app.run_polling()

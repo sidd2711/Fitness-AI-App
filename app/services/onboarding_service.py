@@ -135,7 +135,7 @@ async def handle_onboarding(
 
         await update.message.reply_text(
             "Profile setup completed ✅\n\n"
-            "You can now start logging fitness data."
+            "You can now start logging fitness data(Weight and water intake fow now)."
         )
 
         return True

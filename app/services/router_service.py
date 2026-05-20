@@ -1,0 +1,137 @@
+from app.tools.weight_tool import log_weight
+
+from app.tools.water_tool import log_water
+
+from app.tools.analytics_tool import (
+    get_7_day_average_weight
+)
+
+from app.tools.trend_tool import (
+    get_weight_trend
+)
+
+from app.tools.summary_tool import (
+    summarize_day
+)
+
+
+def execute_actions(user_id, actions):
+
+    responses = []
+
+    for action in actions:
+
+        intent = action.get("intent")
+
+        # =====================
+        # LOG WEIGHT
+        # =====================
+
+        if intent == "log_weight":
+
+            weight = action.get("weight")
+
+            if weight is None:
+
+                responses.append(
+                    "Could not detect weight."
+                )
+
+            else:
+
+                response = log_weight(
+                    user_id=user_id,
+                    weight=weight
+                )
+
+                responses.append(response)
+
+        # =====================
+        # LOG WATER
+        # =====================
+
+        elif intent == "log_water":
+
+            liters = action.get("liters")
+
+            if liters is None:
+
+                responses.append(
+                    "Could not detect water intake."
+                )
+
+            else:
+
+                response = log_water(
+                    user_id=user_id,
+                    liters=liters
+                )
+
+                responses.append(response)
+
+        # =====================
+        # 7 DAY AVERAGE
+        # =====================
+
+        elif intent == "average_weight":
+
+            response = (
+                get_7_day_average_weight(
+                    user_id=user_id
+                )
+            )
+
+            responses.append(response)
+
+        # =====================
+        # WEIGHT TREND
+        # =====================
+
+        elif intent == "weight_trend":
+
+            response = get_weight_trend(
+                user_id=user_id
+            )
+
+            responses.append(response)
+
+        # =====================
+        # DAILY SUMMARY
+        # =====================
+
+        elif intent == "daily_summary":
+
+            response = summarize_day(
+                user_id=user_id
+            )
+
+            responses.append(response)
+
+        # =====================
+        # UNKNOWN INTENT
+        # =====================
+
+        else:
+
+            responses.append(
+                f"Unknown intent: {intent}"
+            )
+
+    # =====================
+    # FALLBACK
+    # =====================
+
+    if not responses:
+
+        responses.append(
+            (
+                "I can currently help with:\n"
+                "- Weight logging\n"
+                "- Water tracking\n"
+                "- Average weight\n"
+                "- Weight trends\n"
+                "- Daily summaries"
+            )
+        )
+
+    return "\n".join(responses)

@@ -31,6 +31,7 @@ def classify_intent(user_message):
                 - log_water
                 - average_weight
                 - weight_trend
+                - daily_summary
 
                 Rules:
                 - Extract ALL actions.
@@ -78,6 +79,18 @@ def classify_intent(user_message):
                     "actions": [
                         {{
                             "intent": "weight_trend"
+                        }}
+                    ]
+                }}
+
+                Message:
+                Summarize my day
+
+                Response:
+                {{
+                    "actions": [
+                        {{
+                            "intent": "daily_summary"
                         }}
                     ]
                 }}

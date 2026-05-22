@@ -14,6 +14,8 @@ from app.tools.summary_tool import (
     summarize_day
 )
 
+from app.tools.meal_tool import log_meal
+
 
 def execute_actions(user_id, actions):
 
@@ -106,7 +108,24 @@ def execute_actions(user_id, actions):
             )
 
             responses.append(response)
+        elif intent == "log_meal":
 
+            meal_text = action.get("meal_text")
+
+            if not meal_text:
+
+                responses.append(
+                    "Could not detect meal."
+                )
+
+            else:
+
+                response = log_meal(
+                    user_id=user_id,
+                    meal_text=meal_text
+                )
+
+                responses.append(response)
         # =====================
         # UNKNOWN INTENT
         # =====================

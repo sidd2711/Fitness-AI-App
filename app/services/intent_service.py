@@ -32,6 +32,7 @@ def classify_intent(user_message):
                 - average_weight
                 - weight_trend
                 - daily_summary
+                - log_meal
 
                 Rules:
                 - Extract ALL actions.
@@ -91,6 +92,19 @@ def classify_intent(user_message):
                     "actions": [
                         {{
                             "intent": "daily_summary"
+                        }}
+                    ]
+                }}
+
+                Message:
+                I ate 4 eggs and whey
+
+                Response:
+                {{
+                    "actions": [
+                        {{
+                            "intent": "log_meal",
+                            "meal_text": "4 eggs and whey"
                         }}
                     ]
                 }}

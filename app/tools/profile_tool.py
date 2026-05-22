@@ -17,6 +17,7 @@ def get_user_profile(user_id):
 
 def create_user_profile(
     user_id,
+    user_name,
     height_cm,
     age,
     gender

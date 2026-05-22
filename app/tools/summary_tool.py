@@ -3,7 +3,8 @@ from app.database import SessionLocal
 from app.models import (
     WeightLog,
     WaterLog,
-    UserProfile
+    UserProfile,
+    MealLog
 )
 
 from app.utils.bmi import calculate_bmi
@@ -42,6 +43,24 @@ def summarize_day(user_id):
         if log.created_at.date() == today:
 
             today_water += log.liters
+
+        # =====================
+        # FETCH TODAY MEALS
+        # =====================
+
+        meal_logs = db.query(MealLog).filter(
+            MealLog.user_id == user_id
+        ).all()
+
+        today_calories = 0
+        today_protein = 0
+
+        for meal in meal_logs:
+
+            if meal.created_at.date() == today:
+
+                today_calories += meal.calories
+                today_protein += meal.protein
 
     # =====================
     # FETCH PROFILE
@@ -93,6 +112,16 @@ def summarize_day(user_id):
         f"Water Intake: {round(today_water, 2)}L 💧"
     )
 
+    # CALORIES
+    summary_lines.append(
+        f"Calories: {round(today_calories)} kcal 🍽️"
+    )
+
+    # PROTEIN
+    summary_lines.append(
+        f"Protein: {round(today_protein)}g 💪"
+    )
+
     # SIMPLE INSIGHTS
     if today_water < 2:
 
@@ -106,4 +135,17 @@ def summarize_day(user_id):
             "\nHydration looks decent today."
         )
 
+    # PROTEIN INSIGHT
+    if today_protein < 80:
+
+        summary_lines.append(
+            "Protein intake is a bit low today."
+        )
+
+    else:
+
+        summary_lines.append(
+            "Protein intake looks good today."
+        )
+        
     return "\n".join(summary_lines)

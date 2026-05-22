@@ -10,6 +10,7 @@ user_onboarding_state = {}
 async def handle_onboarding(
     update,
     user_id,
+    user_name,
     user_message
 ):
 
@@ -30,7 +31,7 @@ async def handle_onboarding(
         }
 
         await update.message.reply_text(
-            "Welcome 💪\n\n"
+            f"Welcome {user_name} 💪\n\n"
             "Let's setup your profile.\n"
             "What is your height in cm?"
         )
@@ -126,6 +127,7 @@ async def handle_onboarding(
 
         create_user_profile(
             user_id=user_id,
+            user_name=user_name,
             height_cm=state["height_cm"],
             age=state["age"],
             gender=gender
@@ -135,7 +137,7 @@ async def handle_onboarding(
 
         await update.message.reply_text(
             "Profile setup completed ✅\n\n"
-            "You can now start logging fitness data(Weight and water intake fow now)."
+            "You can now start logging fitness data(Weight, water intake and meal logs for now)."
         )
 
         return True

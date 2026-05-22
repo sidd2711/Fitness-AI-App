@@ -55,9 +55,11 @@ async def handle_message(
 
     # UNIQUE TELEGRAM USER ID
     user_id = str(update.effective_user.id)
+    user_name = str(update.effective_user.first_name)
 
     print("\n===== NEW MESSAGE =====")
     print("User:", user_message)
+    print("Name:",user_name)
 
     try:
 
@@ -69,6 +71,7 @@ async def handle_message(
             await handle_onboarding(
                 update=update,
                 user_id=user_id,
+                user_name=user_name,
                 user_message=user_message
             )
         )

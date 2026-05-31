@@ -16,6 +16,11 @@ from app.tools.summary_tool import (
 
 from app.tools.meal_tool import log_meal
 
+from app.tools.goal_tool import (
+    set_weight_goal,
+    show_goal_progress
+)
+
 
 def execute_actions(user_id, actions):
 
@@ -126,6 +131,33 @@ def execute_actions(user_id, actions):
                 )
 
                 responses.append(response)
+        elif intent == "set_goal":
+
+            target_weight = action.get(
+                "target_weight"
+            )
+
+            if target_weight is None:
+
+                responses.append(
+                    "Could not detect target weight."
+                )
+
+            else:
+
+                response = set_weight_goal(
+                    user_id=user_id,
+                    target_weight=target_weight
+                )
+
+                responses.append(response)
+        elif intent == "show_progress":
+
+            response = show_goal_progress(
+                user_id=user_id
+            )
+
+            responses.append(response)
         # =====================
         # UNKNOWN INTENT
         # =====================

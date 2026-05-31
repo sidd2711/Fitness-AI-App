@@ -1,6 +1,12 @@
-from app.models import Base
-from app.database import engine
+from app.database import (
+    engine,
+    Base
+)
+
+# IMPORTANT:
+# Import all models so SQLAlchemy registers them
+import app.models
 
 Base.metadata.create_all(bind=engine)
 
-print("Tables created")
+print("Tables created successfully ✅")

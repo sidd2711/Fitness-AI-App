@@ -33,6 +33,8 @@ def classify_intent(user_message):
                 - weight_trend
                 - daily_summary
                 - log_meal
+                - set_goal
+                - show_progress
 
                 Rules:
                 - Extract ALL actions.
@@ -105,6 +107,31 @@ def classify_intent(user_message):
                         {{
                             "intent": "log_meal",
                             "meal_text": "4 eggs and whey"
+                        }}
+                    ]
+                }}
+
+                Message:
+                My target weight is 90 kg
+
+                Response:
+                {{
+                    "actions": [
+                        {{
+                            "intent": "set_goal",
+                            "target_weight": 90
+                        }}
+                    ]
+                }}
+
+                Message:
+                How far am I from my goal?
+
+                Response:
+                {{
+                    "actions": [
+                        {{
+                            "intent": "show_progress"
                         }}
                     ]
                 }}

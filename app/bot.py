@@ -95,6 +95,15 @@ async def handle_message(
         # STEP 3 → EXTRACT ACTIONS
         # =========================
 
+        if not isinstance(
+            intent_data,
+            dict
+        ):
+
+            intent_data = {
+                "actions": []
+            }
+
         actions = intent_data.get(
             "actions",
             []

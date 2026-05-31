@@ -181,7 +181,8 @@ def execute_actions(user_id, actions):
                 "- Water tracking\n"
                 "- Average weight\n"
                 "- Weight trends\n"
-                "- Daily summaries"
+                "- Daily summaries\n"
+                "- Goal tracking"
             )
         )
 

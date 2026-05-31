@@ -1,152 +1,47 @@
-from openai import OpenAI
-from dotenv import load_dotenv
-import os
-import json
-
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1"
+from app.services.router_classifier import (
+    classify_route
 )
 
+from app.services.logging_extractor import (
+    extract_logging_actions
+)
+
+from app.services.goal_extractor import (
+    extract_goal
+)
+
+from app.services.analytics_extractor import (
+    extract_analytics
+)
+
+from app.services.summary_extractor import (
+    extract_summary
+)
 
 def classify_intent(user_message):
 
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+    route = classify_route(user_message)
 
-        response_format={
-            "type": "json_object"
-        },
+    if route == "summary":
+        return extract_summary()
 
-        messages=[
-            {
-                "role": "system",
-                "content": """
-                You are an intent extraction engine.
+    if route == "goal":
+        return extract_goal(user_message)
 
-                Allowed intents:
-                - log_weight
-                - log_water
-                - average_weight
-                - weight_trend
-                - daily_summary
-                - log_meal
-                - set_goal
-                - show_progress
+    if route == "analytics":
+        return extract_analytics(user_message)
 
-                Rules:
-                - Extract ALL actions.
-                - Return ONLY valid JSON.
-                - Do not invent actions.
-                """
-            },
-            {
-                "role": "user",
-                "content": f"""
-                Message:
-                Weight is 102 and drank 3L water
+    if route == "logging":
+        return extract_logging_actions(user_message)
+    if route == "progress":
+        return {
+            "actions": [
+                {
+                    "intent": "show_progress"
+                }
+            ]
+        }
 
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "log_weight",
-                            "weight": 102
-                        }},
-                        {{
-                            "intent": "log_water",
-                            "liters": 3
-                        }}
-                    ]
-                }}
-
-                Message:
-                Show my 7 day average weight
-
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "average_weight"
-                        }}
-                    ]
-                }}
-
-                Message:
-                How is my weight trend?
-
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "weight_trend"
-                        }}
-                    ]
-                }}
-
-                Message:
-                Summarize my day
-
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "daily_summary"
-                        }}
-                    ]
-                }}
-
-                Message:
-                I ate 4 eggs and whey
-
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "log_meal",
-                            "meal_text": "4 eggs and whey"
-                        }}
-                    ]
-                }}
-
-                Message:
-                My target weight is 90 kg
-
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "set_goal",
-                            "target_weight": 90
-                        }}
-                    ]
-                }}
-
-                Message:
-                How far am I from my goal?
-
-                Response:
-                {{
-                    "actions": [
-                        {{
-                            "intent": "show_progress"
-                        }}
-                    ]
-                }}
-
-                Now analyze this message:
-
-                {user_message}
-                """
-            }
-        ]
-    )
-
-    content = response.choices[0].message.content
-
-    print("\n===== RAW LLM RESPONSE =====")
-    print(content)
-
-    return json.loads(content)
+    return {
+        "actions": []
+    }

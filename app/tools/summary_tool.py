@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.database import SessionLocal
 
 from app.models import (
@@ -9,14 +11,17 @@ from app.models import (
 
 from app.utils.bmi import calculate_bmi
 
-from datetime import datetime
-
 
 def summarize_day(user_id):
 
     db = SessionLocal()
 
     today = datetime.utcnow().date()
+
+    # DEFAULT VALUES
+    today_water = 0
+    today_calories = 0
+    today_protein = 0
 
     # =====================
     # FETCH LATEST WEIGHT
@@ -36,31 +41,26 @@ def summarize_day(user_id):
         WaterLog.user_id == user_id
     ).all()
 
-    today_water = 0
-
     for log in water_logs:
 
         if log.created_at.date() == today:
 
             today_water += log.liters
 
-        # =====================
-        # FETCH TODAY MEALS
-        # =====================
+    # =====================
+    # FETCH TODAY MEALS
+    # =====================
 
-        meal_logs = db.query(MealLog).filter(
-            MealLog.user_id == user_id
-        ).all()
+    meal_logs = db.query(MealLog).filter(
+        MealLog.user_id == user_id
+    ).all()
 
-        today_calories = 0
-        today_protein = 0
+    for meal in meal_logs:
 
-        for meal in meal_logs:
+        if meal.created_at.date() == today:
 
-            if meal.created_at.date() == today:
-
-                today_calories += meal.calories
-                today_protein += meal.protein
+            today_calories += meal.calories
+            today_protein += meal.protein
 
     # =====================
     # FETCH PROFILE
@@ -83,6 +83,7 @@ def summarize_day(user_id):
     )
 
     # WEIGHT
+
     if latest_weight:
 
         summary_lines.append(
@@ -96,6 +97,7 @@ def summarize_day(user_id):
         )
 
     # BMI
+
     if latest_weight and profile:
 
         bmi = calculate_bmi(
@@ -108,21 +110,33 @@ def summarize_day(user_id):
         )
 
     # WATER
+
     summary_lines.append(
         f"Water Intake: {round(today_water, 2)}L 💧"
     )
 
-    # CALORIES
-    summary_lines.append(
-        f"Calories: {round(today_calories)} kcal 🍽️"
-    )
+    # MEALS
 
-    # PROTEIN
-    summary_lines.append(
-        f"Protein: {round(today_protein)}g 💪"
-    )
+    if today_calories > 0:
 
-    # SIMPLE INSIGHTS
+        summary_lines.append(
+            f"Calories: {today_calories} kcal 🍽️"
+        )
+
+        summary_lines.append(
+            f"Protein: {today_protein}g 💪"
+        )
+
+    else:
+
+        summary_lines.append(
+            "Meals: No meal data today"
+        )
+
+    # =====================
+    # INSIGHTS
+    # =====================
+
     if today_water < 2:
 
         summary_lines.append(
@@ -135,17 +149,18 @@ def summarize_day(user_id):
             "\nHydration looks decent today."
         )
 
-    # PROTEIN INSIGHT
-    if today_protein < 80:
+    if today_calories > 0:
 
-        summary_lines.append(
-            "Protein intake is a bit low today."
-        )
+        if today_protein < 80:
 
-    else:
+            summary_lines.append(
+                "Protein intake is a bit low today."
+            )
 
-        summary_lines.append(
-            "Protein intake looks good today."
-        )
-        
+        else:
+
+            summary_lines.append(
+                "Protein intake looks good today."
+            )
+
     return "\n".join(summary_lines)

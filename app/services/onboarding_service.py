@@ -106,7 +106,13 @@ async def handle_onboarding(
     # STEP 4 → SAVE GENDER
     elif state["step"] == "gender":
 
-        gender = user_message.lower()
+        gender = user_message.lower().strip()
+
+        if gender in ["m", "male"]:
+            gender = "male"
+
+        elif gender in ["f", "female"]:
+            gender = "female"
 
         allowed_genders = [
             "male",
@@ -136,8 +142,26 @@ async def handle_onboarding(
         del user_onboarding_state[user_id]
 
         await update.message.reply_text(
-            "Profile setup completed ✅\n\n"
-            "You can now start logging fitness data(Weight, water intake and meal logs for now)."
+            "🎉 Profile setup completed!\n\n"
+            "Here are some things you can try:\n\n"
+            
+            "⚖️ Weight\n"
+            "• My weight is 65 kg\n\n"
+            
+            "💧 Water\n"
+            "• I drank 2 liters of water\n\n"
+            
+            "🍽️ Meals\n"
+            "• I ate 4 eggs and whey protein\n\n"
+            
+            "🎯 Goals\n"
+            "• My target weight is 60 kg\n\n"
+            
+            "📊 Analytics\n"
+            "• Summarize my day\n"
+            "• Show my weight trend\n"
+            "• Show my 7 day average weight\n"
+            "• How far am I from my goal?"
         )
 
         return True
